@@ -72,6 +72,7 @@ class _LoginPageState extends State<LoginPage> {
                       final token = responseData['token'];
                       SharedPreferences prefs = await SharedPreferences.getInstance();
                        await prefs.setString('session_token', token);
+                       await prefs.setString('user_type', responseData['user_type']);
                       // Login successful, navigate to home page
                       Navigator.pushReplacement(
                         context,
