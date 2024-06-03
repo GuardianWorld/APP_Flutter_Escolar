@@ -54,7 +54,6 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print(data);
         setState(() {
           children = List<Map<String, String>>.from(
             (data['children'] as List).map((child) => {
@@ -234,16 +233,16 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar Remoção'),
-          content: Text('Você tem certeza que quer remover?'),
+          content: const Text('Você tem certeza que quer remover?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Remover'),
+              child: const Text('Remover'),
               onPressed: () {
                 Navigator.of(context).pop();
                 _removeChildContract(childId);
@@ -257,7 +256,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView (
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

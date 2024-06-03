@@ -6,11 +6,13 @@ import 'package:g_app/profile_page.dart';
 import 'package:g_app/driver_profile_page.dart';
 import 'package:g_app/service_page.dart';
 import 'package:g_app/notification_page.dart';
+import 'package:g_app/map_page.dart';
+import 'dart:async';
 
 class HomePage extends StatefulWidget {
   final SocketService socketService;
 
-  const HomePage({Key? key, required this.socketService}) : super(key: key);
+  const HomePage({super.key, required this.socketService});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -19,7 +21,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   bool isDriver = false;
-  late List<Widget> _pages;
+  List<Widget> _pages = [
+      ProfilePage(),
+      ServiceAreaPage(),
+      NotificationPage(),
+      MapPage(),
+      ];
 
   @override
   void initState(){
@@ -45,8 +52,9 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       isDriver = userType == 'driver';
-      _initializePages();
     });
+
+    _initializePages();
   }
 
   void _onItemTapped(int index) {
@@ -61,6 +69,7 @@ class _HomePageState extends State<HomePage> {
       if (isDriver) DriverProfilePage(),
       ServiceAreaPage(),
       NotificationPage(),
+      MapPage(),
     ];
   }
 
@@ -87,15 +96,19 @@ class _HomePageState extends State<HomePage> {
           if(isDriver)
             const BottomNavigationBarItem(
               icon: Icon(Icons.drive_eta),
-              label: 'Perfil do Motorista',
+              label: 'Motorista',
             ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: 'Area de Serviço',
+            label: 'Serviço',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
             label: 'Notificações',
+          ),
+           const BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Mapa',
           ),
         ],
         currentIndex: _selectedIndex,

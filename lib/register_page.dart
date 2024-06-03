@@ -4,7 +4,7 @@ import 'package:g_app/api_service.dart';
 class RegisterPage extends StatefulWidget {
   final SocketService socketService;
 
-  RegisterPage({super.key, required this.socketService});
+  const RegisterPage({super.key, required this.socketService});
 
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -25,7 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Registro')),
-      body: Padding(
+      body: SingleChildScrollView (
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,

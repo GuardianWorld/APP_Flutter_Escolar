@@ -137,8 +137,8 @@ class _NotificationPageState extends State<NotificationPage> {
           return ListTile(
             title: Text(notification.message),
             subtitle: notification.type == 'contract'
-                ? Text('Contrato')
-                : Text('Notificação'),
+                ? const Text('Contrato')
+                : const Text('Notificação'),
             trailing: notification.type == 'contract'
                 ? Row(
                     mainAxisSize: MainAxisSize.min,

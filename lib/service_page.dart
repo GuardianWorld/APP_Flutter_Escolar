@@ -66,7 +66,6 @@ class _ServiceAreaPageState extends State<ServiceAreaPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print(data);
         if (data['status'] == 'success') {
           setState(() {
             selectedSchoolName = schoolName;

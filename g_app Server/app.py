@@ -9,6 +9,7 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import sqlite3
 import json
+import requests
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -28,6 +29,15 @@ def generate_token(user_id):
 
 ## Database
 
+def get_address_details(latitude, longitude):
+    url = f"https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json"
+    response = requests.get(url)
+    data = response.json()
+    address = data.get('address', {})
+    road = address.get('road', 'Unknown')
+    city = address.get('city', address.get('town', address.get('village', 'Unknown')))
+    return f"{road}, {city}"
+
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -37,6 +47,7 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS contracts (id INTEGER PRIMARY KEY, notificationID INTEGER, child_id INTEGER, driver_id INTEGER, school_id INTEGER, status TEXT, date TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS school (id INTEGER PRIMARY KEY, name TEXT, address TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS school_driver (id INTEGER PRIMARY KEY, school_id INTEGER, driver_id INTEGER)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS location (id INTEGER PRIMARY KEY, driver_id INTEGER, latitude REAL, longitude REAL, timestamp TEXT)''')
     
     conn.commit()
     conn.close()
@@ -556,6 +567,8 @@ def accept_contract():
 
         # Update the contract status to 'accepted'
         c.execute('UPDATE contracts SET status = "accepted" WHERE notificationID = ?', (notification_id,))
+        
+        c.execute('UPDATE notifications SET read = 1 WHERE id = ?', (notification_id,))
 
         # Update the DriverID field in the children table
         c.execute('UPDATE children SET driver_id = ? WHERE id = ?', (driver_id, child_id))
@@ -577,6 +590,8 @@ def reject_contract():
 
     conn, c = get_db_connection()
     c.execute('UPDATE contracts SET status = "rejected" WHERE notificationID = ?', (notification_id,))
+    #Read the notification as well
+    c.execute('UPDATE notifications SET read = 1 WHERE id = ?', (notification_id,))
     conn.commit()
     conn.close()
 
@@ -634,6 +649,61 @@ def notify_absence():
     conn.close()
 
     return jsonify({'status': 'success'})
+
+#Map Routes
+@app.route("/map", methods=['GET', 'POST'])
+def map():
+    user_id, error_response, status_code = validate_token()
+    if error_response:
+        return error_response, status_code
+    
+    conn, c = get_db_connection()
+    
+    if request.method == 'GET':
+        c.execute('''
+        SELECT DISTINCT d.id, d.name, dl.latitude, dl.longitude, dl.timestamp
+        FROM children c
+        JOIN users d ON c.driver_id = d.id
+        LEFT JOIN location dl ON d.id = dl.driver_id
+        WHERE c.user_id = ?
+        ''', (user_id,))
+        drivers = c.fetchall()   
+        
+        driver_list = []
+        for driver in drivers:
+            street_name = get_address_details(driver[2], driver[3])
+            driver_list.append({
+                'id': driver[0],
+                'name': driver[1],
+                'latitude': driver[2],
+                'longitude': driver[3],
+                'timestamp': driver[4],
+                'street_name': street_name
+            })
+
+        print(driver_list)
+        
+        conn.close()
+        return jsonify({'status': 'success', 'drivers': driver_list})
+    
+    elif request.method == 'POST':
+        data = request.json
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+
+        if not latitude or not longitude:
+            return jsonify({'status': 'error', 'message': 'Latitude and longitude are required'}), 400
+        
+        #Clean all previous locations
+        c.execute('DELETE FROM location WHERE driver_id = ?', (user_id,))
+        
+        current_time = datetime.datetime.now().isoformat()
+        c.execute('INSERT OR REPLACE INTO location (driver_id, latitude, longitude, timestamp) VALUES (?, ?, ?, ?)',
+                  (user_id, latitude, longitude, current_time))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'success'})
+        
 
 @socketio.on('connect')
 def handle_connect():

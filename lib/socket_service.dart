@@ -1,9 +1,11 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+// ignore_for_file: avoid_print
+
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketService {
-  IO.Socket socket;
+  io.Socket socket;
 
-  SocketService() : socket = IO.io('http://127.0.0.1:5000', <String, dynamic>{
+  SocketService() : socket = io.io('http://127.0.0.1:5000', <String, dynamic>{
     'transports': ['websocket'],
     'autoConnect': false,
   });
@@ -22,9 +24,5 @@ class SocketService {
     socket.on('disconnect', (_) {
       print('Disconnected from the server');
     });
-  }
-
-  void sendLocation(Map<String, dynamic> location) {
-    socket.emit('location', location);
   }
 }

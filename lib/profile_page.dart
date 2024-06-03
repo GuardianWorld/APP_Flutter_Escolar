@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:g_app/api_service.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -23,6 +25,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _fetchProfile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('session_token');
+    String? role = prefs.getString('user_type');
+    print(role);
 
     if (token != null) {
       final response = await ApiService.fetchProfile(token);
@@ -48,6 +52,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         );
       }
+    }
+    if(role == 'driver'){
+      _startLocationUpdates();
     }
   }
 
@@ -238,9 +245,23 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
   
+  void _startLocationUpdates() async {
+    Position position = await Geolocator.getCurrentPosition();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('session_token');
+
+    if (token != null) {
+      Map<String, double> locationData = {
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+      };
+      await ApiService.updateLocation(locationData, token);
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView (
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

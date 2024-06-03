@@ -2,7 +2,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:5000';
+  static const String baseUrl = 'http://10.0.2.2:5000';
+  //10.0.2.2:5000
+  //127.0.0.1:5000
 
   //Basic API calls
 
@@ -242,4 +244,26 @@ class ApiService {
     return response;
   }
 
+  static Future<http.Response> getMapLocations(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/map'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token,
+      },
+    );
+    return response;
+  }
+
+static Future<http.Response> updateLocation(Map<String, double> data, String token) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/map'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    },
+    body: json.encode(data),
+  );
+  return response;
+}
 }

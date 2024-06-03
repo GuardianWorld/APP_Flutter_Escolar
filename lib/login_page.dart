@@ -9,7 +9,7 @@ import 'dart:convert';
 class LoginPage extends StatefulWidget {
   final SocketService socketService;
 
-  LoginPage({super.key, required this.socketService});
+  const LoginPage({super.key, required this.socketService});
 
   @override
   _LoginPageState createState() => _LoginPageState();
